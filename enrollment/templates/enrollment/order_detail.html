@@ -1,0 +1,48 @@
+{% extends 'enrollment/base.html' %}
+{% block content %}
+<h3>Детали приказа {% if order.order_number %}№{{ order.order_number }}{% endif %}</h3>
+<p><strong>Статус:</strong> <span class="badge bg-{% if order.status == 'signed' %}success{% else %}secondary{% endif %}">{{ order.get_status_display }}</span></p>
+<p><strong>Группа:</strong> {{ order.group_name }}</p>
+<p><strong>Создан:</strong> {{ order.created_by.username }} в {{ order.created_at }}</p>
+{% if order.signed_by %}
+<p><strong>Подписан:</strong> {{ order.signed_by.username }} в {{ order.order_date }}</p>
+{% endif %}
+
+<h4>Абитуриенты в приказе:</h4>
+<ul>
+    {% for applicant in order.applicants.all %}
+    <li>{{ applicant.full_name }} ({{ applicant.payment_type }})</li>
+    {% empty %}
+    <li>Нет абитуриентов в этом приказе.</li>
+    {% endfor %}
+</ul>
+
+<hr>
+
+{% if order.status == 'draft' %}
+  {% if perms.enrollment.change_order %} {# Пример правильной проверки #}
+    <h4>Подписать приказ (Admin)</h4>
+    <form action="{% url 'sign_order' order.pk %}" method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="order_number" class="form-label">Присвоить номер приказу:</label>
+            <input type="text" name="order_number" required class="form-control" style="width: 200px;">
+        </div>
+        <button type="submit" class="btn btn-success">Подписать и присвоить номер</button>
+    </form>
+    <hr>
+  {% endif %}
+  
+  {% if perms.enrollment.change_order %}
+    <a href="{% url 'order_update' order.pk %}" class="btn btn-primary">Редактировать приказ</a>
+  {% endif %}
+
+{% elif order.status == 'signed' %}
+  <a href="{% url 'download_order' order.pk %}" class="btn btn-primary">Скачать .docx</a>
+  {% if perms.enrollment.delete_order %}
+    <a href="{% url 'order_delete' order.pk %}" class="btn btn-danger">Удалить (отозвать) приказ</a>
+  {% endif %}
+{% endif %}
+
+<a href="{% url 'order_list' %}" class="btn btn-secondary mt-3">Назад к списку приказов</a>
+{% endblock %}

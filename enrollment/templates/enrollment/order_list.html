@@ -1,0 +1,43 @@
+{% extends 'enrollment/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Список приказов</h2>
+    {% if perms.enrollment.add_order %}
+    <a href="{% url 'order_create' %}" class="btn btn-primary">Создать новый приказ</a>
+    {% endif %}
+</div>
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Номер</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Группа</th>
+                <th>Создал</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.order_number|default:"б/н" }}</td>
+                <td>{{ order.order_date|date:"d.m.Y"|default:"-" }}</td>
+                <td>
+                    <span class="badge bg-{% if order.status == 'signed' %}success{% else %}secondary{% endif %}">{{ order.get_status_display }}</span>
+                </td>
+                <td>{{ order.group_name }}</td>
+                <td>{{ order.created_by.username }}</td>
+                <td>
+                    <a href="{% url 'order_detail' order.pk %}" class="btn btn-sm btn-info">Просмотр</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">Нет созданных приказов.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

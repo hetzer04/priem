@@ -1,0 +1,53 @@
+{% extends 'enrollment/base.html' %}
+{% block content %}
+<h2>Формирование приказа</h2>
+<form action="{% url 'generate_order' %}" method="post">
+    {% csrf_token %}
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="order_number" class="form-label">Номер приказа</label>
+            <input type="text" class="form-control" id="order_number" name="order_number" required>
+        </div>
+        <div class="col-md-6">
+            <label for="group_name" class="form-label">Название группы</label>
+            <input type="text" class="form-control" id="group_name" name="group_name" required>
+        </div>
+    </div>
+
+    <h4>Выберите абитуриентов для зачисления:</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all"></th>
+                <th>ФИО</th>
+                <th>Специальность</th>
+                <th>Средний балл</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for applicant in applicants %}
+            <tr>
+                <td><input type="checkbox" name="applicant_ids" value="{{ applicant.pk }}"></td>
+                <td>{{ applicant.full_name }}</td>
+                <td>{{ applicant.specialty }}</td>
+                <td>{{ applicant.gpa }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Нет абитуриентов.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-success">Скачать приказ (.docx)</button>
+    <a href="{% url 'applicant_list' %}" class="btn btn-secondary">Отмена</a>
+</form>
+
+<script>
+document.getElementById('select-all').onclick = function() {
+    var checkboxes = document.querySelectorAll('input[name="applicant_ids"]');
+    for (var checkbox of checkboxes) {
+        checkbox.checked = this.checked;
+    }
+}
+</script>
+{% endblock %}
