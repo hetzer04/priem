@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'enrollment',
     'django_filters',
+    'handbooks',
 ]
 
 MIDDLEWARE = [

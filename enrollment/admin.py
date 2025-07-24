@@ -8,15 +8,7 @@ class ApplicantAdmin(admin.ModelAdmin):
     list_filter = ('specialty', 'qualification', 'study_form', 'payment_type', 'payment_status', 'needs_dormitory', 'base_education')
     search_fields = ('full_name', 'iin')
 
-@admin.register(Specialty)
-class SpecialtyAdmin(admin.ModelAdmin):
-    list_display = ('name',)
 
-@admin.register(Qualification)
-class QualificationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'specialty')
-    list_filter = ('specialty',)
-    search_fields = ('name',)
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
