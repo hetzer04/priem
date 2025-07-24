@@ -22,7 +22,9 @@ from django.conf.urls.static import static # Добавить импорт
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('enrollment.urls')), # Подключаем наше приложение
+    path('', include('enrollment.urls')),
+    path('handbooks/', include('handbooks.urls')),
+    path('orders/', include('orders.urls')),
 ]
 
 if settings.DEBUG:

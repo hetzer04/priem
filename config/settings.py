@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'enrollment',
     'django_filters',
     'handbooks',
+    'orders',
 ]
 
 MIDDLEWARE = [
