@@ -1,30 +1,23 @@
 # views.py
 
 import json
-from operator import itemgetter
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required, permission_required # Импортируем permission_required
 from django.utils import timezone
 from django.http import HttpResponse
 from django.db.models import Count, Q
 from itertools import groupby
-from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
-from django.db import transaction
 
-from docx import Document
-from docxtpl import DocxTemplate
+from handbooks.models import Qualification, Specialty
 
-from .models import Applicant, Student 
+
+from .models import Applicant
 from .forms import ApplicantForm
 from .filters import ApplicantFilter
 import pandas as pd
 from django.contrib import messages
-from .models import Specialty, Qualification
-import difflib
+
 from django.core.serializers.json import DjangoJSONEncoder
 
 @require_POST # Эта функция будет принимать только POST-запросы

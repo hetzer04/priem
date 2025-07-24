@@ -1,8 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Applicant, Qualification, Order
-
-
+from .models import Applicant, Qualification
 
 class ApplicantForm(forms.ModelForm):
     class Meta:
@@ -75,25 +73,3 @@ class ApplicantForm(forms.ModelForm):
                     "Выбранная квалификация не соответствует выбранной специальности. Пожалуйста, выберите корректную квалификацию."
                 )
         return cleaned_data
-
-class OrderForm(forms.ModelForm):
-    class Meta:
-        model = Order
-        # Включаем все новые поля
-        fields = ['title', 'preamble', 'group_name']
-        
-        # Добавляем виджеты и стили Bootstrap
-        widgets = {
-            'order_type': forms.Select(attrs={'class': 'form-select'}),
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'preamble': forms.Textarea(attrs={'class': 'form-control', 'rows': 6}),
-            'group_name': forms.TextInput(attrs={'class': 'form-control'}),
-        }
-        
-        # Указываем понятные названия для полей
-        labels = {
-            'order_type': '1. Тип приказа',
-            'title': '2. Заголовок приказа',
-            'preamble': '3. Преамбула (основание для приказа)',
-            'group_name': '4. Название группы (если применимо)',
-        }
