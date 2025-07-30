@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +27,7 @@ SECRET_KEY = 'django-insecure-^0b^ip3zxcsber$1tj2tjsk$l_f(k06k-)81tlxygiuc&c-1s9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['http://95.141.140.117:8000', 'http://95.141.140.117']
 
 
 # Application definition
@@ -124,8 +126,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -138,3 +138,17 @@ LOGOUT_REDIRECT_URL = 'login'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+CSRF_TRUSTED_ORIGINS = ['http://95.141.140.117:8000']
+
+# Путь, куда будут собраны статические файлы для продакшена
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Директории, где Django будет искать статические файлы
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+    # Если у вас есть статические файлы в других местах, добавьте их сюда
+]
+
+# URL для доступа к статическим файлам
+STATIC_URL = '/static/'
