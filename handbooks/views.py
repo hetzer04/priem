@@ -3,8 +3,9 @@
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import Specialty, Qualification
-from .forms import SpecialtyForm, QualificationForm
+from .models import Quota, Specialty, Qualification
+from .forms import QuotaForm, SpecialtyForm, QualificationForm
+
 
 # --- CRUD для Специальностей ---
 
@@ -65,3 +66,34 @@ class QualificationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Delet
     template_name = 'handbooks/confirm_delete.html'
     success_url = reverse_lazy('qualification_list')
     extra_context = {'object_name': 'квалификацию'}
+
+# --- CRUD для Квот ---
+
+
+class QuotaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = Quota
+    permission_required = 'handbooks.view_quota'
+    template_name = 'handbooks/quota_list.html'
+    context_object_name = 'quotas'
+    queryset = Quota.objects.select_related('specialty').all()
+
+class QuotaCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = Quota
+    form_class = QuotaForm
+    permission_required = 'handbooks.add_quota'
+    template_name = 'handbooks/quota_form.html'
+    success_url = reverse_lazy('quota_list')
+
+class QuotaUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Quota
+    form_class = QuotaForm
+    permission_required = 'handbooks.change_quota'
+    template_name = 'handbooks/quota_form.html'
+    success_url = reverse_lazy('quota_list')
+
+class QuotaDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Quota
+    permission_required = 'handbooks.delete_quota'
+    template_name = 'handbooks/confirm_delete.html'
+    success_url = reverse_lazy('quota_list')
+    extra_context = {'object_name': 'квоту'}

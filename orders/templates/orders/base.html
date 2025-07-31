@@ -51,7 +51,8 @@
                     </ul>
                 </li>
                 {% endif %}
-                {% if perms.handbooks.view_handbook or perms.handbooks.add_handbook %}
+
+                {% if perms.handbooks.view_handbook or perms.handbooks.add_handbook or perms.handbooks.view_quota %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Справочники
@@ -62,6 +63,9 @@
                         {% endif %}
                         {% if perms.handbooks.view_qualification %}
                         <li><a class="dropdown-item" href="{% url 'qualification_list' %}">Квалификации</a></li>
+                        {% endif %}
+                        {% if perms.handbooks.view_quota %}
+                        <li><a class="dropdown-item" href="{% url 'quota_list' %}">Квоты</a></li>
                         {% endif %}
                     </ul>
                 </li>

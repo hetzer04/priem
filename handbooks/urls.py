@@ -15,4 +15,10 @@ urlpatterns = [
     path('qualifications/add/', views.QualificationCreateView.as_view(), name='qualification_add'),
     path('qualifications/<int:pk>/edit/', views.QualificationUpdateView.as_view(), name='qualification_edit'),
     path('qualifications/<int:pk>/delete/', views.QualificationDeleteView.as_view(), name='qualification_delete'),
+
+    # URL-адреса для квот
+    path('quotas/', views.QuotaListView.as_view(), name='quota_list'),
+    path('quotas/add/', views.QuotaCreateView.as_view(), name='quota_add'),
+    path('quotas/<int:pk>/edit/', views.QuotaUpdateView.as_view(), name='quota_edit'),
+    path('quotas/<int:pk>/delete/', views.QuotaDeleteView.as_view(), name='quota_delete'),
 ]
