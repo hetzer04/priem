@@ -163,14 +163,31 @@ def import_applicants_from_excel(request):
                     iin=iin,
                     defaults={
                         'full_name': row.get('ФИО'),
-                        'specialty': specialty,
-                        'qualification': qualification,
-                        'application_date': app_date,
-                        'birth_date': birth_date,
-                        # ... добавьте сюда остальные поля из Excel по аналогии ...
+                        'specialty': specialty, # Assuming 'specialty' object is retrieved separately
+                        'qualification': qualification, # Assuming 'qualification' object is retrieved separately
+                        'application_date': app_date, # Assuming 'app_date' is parsed/converted separately
+                        'iin': row.get('ИИН'), # Added IIN
+                        'study_form': row.get('Форма обучения'),
+                        'base_education': row.get('На базе'),
+                        'school': row.get('Школа/Колледж'),
+                        'graduation_year': row.get('Год окончания'),
+                        'with_honors': row.get('С отличием') in ['Да', 'True', '1'], # Example of boolean conversion
                         'gpa': row.get('Средний балл аттестата'),
+                        'birth_date': birth_date, # Assuming 'birth_date' is parsed/converted separately
                         'study_language': row.get('Язык обучения'),
+                        'social_status': row.get('Социальный статус'),
+                        'citizenship': row.get('Гражданство'),
+                        'nationality': row.get('Национальность'),
+                        'gender': row.get('Пол'),
+                        'phone_number': row.get('Контакты'),
+                        'home_address': row.get('Дом. адрес'),
+                        'parents_info': row.get('ФИО родителей'),
+                        'has_incomplete_docs': row.get('Неполный пакет документов') in ['Да', 'True', '1'],
+                        'needs_dormitory': row.get('Общежитие') in ['Да', 'True', '1'],
+                        'photo': None, # Images usually require specific handling for import, setting to None for now
+                        'is_ready_for_enrollment': row.get('К зачислению') in ['Да', 'True', '1'],
                         'payment_type': row.get('Тип финансирования'),
+                        'payment_status': row.get('Статус оплаты'),
                     }
                 )
                 imported_count += 1
