@@ -2,6 +2,8 @@
 # -------------------
 from django.db import models
 
+from handbooks.models import Quota
+
 class Student(models.Model):
     # Константы (копируем из старой модели)
     STUDY_FORM_CHOICES = [('Очная', 'Очная'), ('Дуальная', 'Дуальная')]
@@ -41,6 +43,13 @@ class Student(models.Model):
     
     # Связь с приказами
     movement_history = models.ManyToManyField('orders.Order', blank=True, verbose_name="История приказов")
+
+    quotas = models.ManyToManyField(
+        Quota,
+        blank=True,
+        verbose_name="Квоты",
+        related_name="students"
+    )
     
     created_at = models.DateTimeField(auto_now_add=True)
 

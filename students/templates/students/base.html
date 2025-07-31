@@ -36,39 +36,41 @@
                 </li>
                 {% endif %}
 
-                {% if perms.enrollment.view_order or perms.enrollment.add_order %}
+                {% if perms.orders.view_order or perms.orders.add_order %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="ordersDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Приказы
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="ordersDropdown">
-                        {% if perms.enrollment.view_order %}
+                        {% if perms.orders.view_order %}
                         <li><a class="dropdown-item" href="{% url 'order_list' %}">Список приказов</a></li>
                         {% endif %}
-                        {% if perms.enrollment.add_order %}
+                        {% if perms.orders.add_order %}
                         <li><a class="dropdown-item" href="{% url 'order_create' %}">Создать приказ</a></li>
                         {% endif %}
                     </ul>
                 </li>
                 {% endif %}
+                {% if perms.handbooks.view_handbook or perms.handbooks.add_handbook %}
                 <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-        Справочники
-    </a>
-    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-        {% if perms.handbooks.view_specialty %}
-        <li><a class="dropdown-item" href="{% url 'specialty_list' %}">Специальности</a></li>
-        {% endif %}
-        {% if perms.handbooks.view_qualification %}
-        <li><a class="dropdown-item" href="{% url 'qualification_list' %}">Квалификации</a></li>
-        {% endif %}
-    </ul>
-</li>
-<li class="nav-item">
-    {% if perms.enrollment.view_student %}
-    <a class="nav-link" href="{% url 'student_list' %}">Студенты</a>
-    {% endif %}
-</li>
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Справочники
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        {% if perms.handbooks.view_specialty %}
+                        <li><a class="dropdown-item" href="{% url 'specialty_list' %}">Специальности</a></li>
+                        {% endif %}
+                        {% if perms.handbooks.view_qualification %}
+                        <li><a class="dropdown-item" href="{% url 'qualification_list' %}">Квалификации</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    {% if perms.students.view_student %}
+                    <a class="nav-link" href="{% url 'student_list' %}">Студенты</a>
+                    {% endif %}
+                </li>
             </ul>
 
             <div class="d-flex">

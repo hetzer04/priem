@@ -2,7 +2,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-from handbooks.models import Specialty, Qualification
+from handbooks.models import Quota, Specialty, Qualification
 from orders.models import Order
 
 class Applicant(models.Model):
@@ -45,6 +45,13 @@ class Applicant(models.Model):
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='Не оплачено', verbose_name="Статус оплаты", null=True, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
+
+    quotas = models.ManyToManyField(
+        Quota,
+        blank=True,
+        verbose_name="Квоты",
+        related_name="abiturients"
+    )
 
     def __str__(self):
         return self.full_name
