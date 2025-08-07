@@ -39,7 +39,7 @@ def applicant_list(request):
 @permission_required('enrollment.add_applicant', raise_exception=True)
 def add_applicant(request):
     if request.method == 'POST':
-        form = ApplicantForm(request.POST)
+        form = ApplicantForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             return redirect('applicant_list')
@@ -52,7 +52,7 @@ def add_applicant(request):
 def edit_applicant(request, pk):
     applicant = get_object_or_404(Applicant, pk=pk)
     if request.method == 'POST':
-        form = ApplicantForm(request.POST, instance=applicant)
+        form = ApplicantForm(request.POST, request.FILES, instance=applicant)
         if form.is_valid():
             form.save()
             return redirect('applicant_list')
