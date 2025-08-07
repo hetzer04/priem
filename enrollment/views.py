@@ -381,12 +381,17 @@ class ApplicantDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteVie
 @require_POST
 @permission_required('enrollment.change_applicant')
 def bulk_enroll_view(request):
-    applicant_ids = request.POST.getlist('selected_applicants')
-    if not applicant_ids:
+    # 1. Получаем ID как одну строку (например, "10,15,22")
+    id_string = request.POST.get('selected_applicants')
+
+    if not id_string:
         messages.warning(request, "Вы не выбрали ни одного абитуриента.")
         return redirect('applicant_list')
     
-    # Обновляем статус для всех выбранных ID
+    # 2. "Разрезаем" строку по запятым, чтобы получить список ['10', '15', '22']
+    applicant_ids = id_string.split(',')
+    
+    # 3. Обновляем статус для всех ID из полученного списка
     updated_count = Applicant.objects.filter(pk__in=applicant_ids).update(is_ready_for_enrollment=True)
     
     if updated_count > 0:
