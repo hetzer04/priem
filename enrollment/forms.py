@@ -71,7 +71,7 @@ class ApplicantForm(forms.ModelForm):
             except (ValueError, TypeError):
                 pass
         elif self.instance and self.instance.pk:
-            self.fields['qualification'].queryset = self.instance.specialty.qualification_set.order_by('name')
+            self.fields['qualification'].queryset = self.instance.specialty.qualifications.order_by('name')
 
         # --- 3. Новая логика для обработки старого поля social_status ---
         if self.instance and self.instance.pk and self.instance.social_status:
