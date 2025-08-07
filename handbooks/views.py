@@ -1,5 +1,5 @@
 # handbooks/views.py
-# ------------------
+
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
@@ -36,6 +36,12 @@ class SpecialtyDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteVie
     success_url = reverse_lazy('specialty_list')
     extra_context = {'object_name': 'специальность'}
 
+    # ИСПРАВЛЕНИЕ: Добавляем cancel_url в контекст
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['cancel_url'] = self.success_url
+        return context
+
 
 # --- CRUD для Квалификаций ---
 
@@ -67,8 +73,14 @@ class QualificationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Delet
     success_url = reverse_lazy('qualification_list')
     extra_context = {'object_name': 'квалификацию'}
 
-# --- CRUD для Квот ---
+    # ИСПРАВЛЕНИЕ: Добавляем cancel_url в контекст
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['cancel_url'] = self.success_url
+        return context
 
+
+# --- CRUD для Квот ---
 
 class QuotaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = Quota
@@ -97,3 +109,9 @@ class QuotaDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     template_name = 'handbooks/confirm_delete.html'
     success_url = reverse_lazy('quota_list')
     extra_context = {'object_name': 'квоту'}
+
+    # ИСПРАВЛЕНИЕ: Добавляем cancel_url в контекст
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['cancel_url'] = self.success_url
+        return context
