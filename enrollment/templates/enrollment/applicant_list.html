@@ -4,7 +4,6 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Список абитуриентов</h2>
     <div>
-        {# 2. Кнопка экспорта переехала сюда #}
         {% if perms.enrollment.view_applicant %}
         <a href="{% url 'export_applicants_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success">Экспорт в Excel</a>
         {% endif %}
@@ -13,8 +12,6 @@
         {% endif %}
     </div>
 </div>
-
-{# 1. Блок импорта и кнопка "Список приказов" удалены #}
 
 <div class="accordion mb-4" id="filterAccordion">
     <div class="accordion-item">
@@ -32,7 +29,6 @@
                     <div class="row g-3">
                         {% for field in filter.form %}
                         <div class="col-lg-3 col-md-4 col-sm-6">
-                            {# 3. Для поля Квоты здесь ничего менять не нужно, JS сам его найдет по ID #}
                             <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                             {{ field }}
                         </div>
@@ -52,7 +48,6 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <span class="fw-bold">Всего абитуриентов: {{ filter.qs.count }}</span>
         <div>
-            {# 5. Форма для массового действия "К зачислению" #}
             {% if perms.enrollment.change_applicant %}
             <form action="{% url 'bulk_enroll' %}" method="post" id="bulkActionForm" class="d-inline">
                 {% csrf_token %}
@@ -66,7 +61,6 @@
         <table class="table table-striped table-hover table-bordered mb-0">
             <thead>
                 <tr>
-                    {# 4. Чекбокс для выбора всех #}
                     <th style="width: 1%;"><input type="checkbox" class="form-check-input" id="selectAllCheckbox"></th>
                     <th>#</th>
                     <th>ФИО</th>
@@ -78,11 +72,10 @@
             <tbody>
                 {% for applicant in filter.qs %}
                 <tr class="{% if applicant.social_status %}table-warning{% elif applicant.is_ready_for_enrollment %}table-success{% endif %}">
-                    {# 4. Чекбокс для каждой строки #}
-                    <td><input type="checkbox" class="form-check-input row-checkbox" name="applicant_id" value="{{ applicant.pk }}"></td>
+                    {# ИЗМЕНЕНИЕ: Убираем атрибут name, он здесь не нужен и может мешать #}
+                    <td><input type="checkbox" class="form-check-input row-checkbox" value="{{ applicant.pk }}"></td>
                     <td>{{ forloop.counter }}</td>
                     <td>
-                        {# 7. Имя абитуриента теперь ссылка на страницу просмотра #}
                         <a href="{% url 'applicant_detail' applicant.pk %}">{{ applicant.full_name }}</a>
                         {% if applicant.social_status %}
                         <i class="fas fa-exclamation-circle text-warning ms-1" title="Требуется обновить квоту! Старое значение: {{ applicant.social_status }}"></i>
@@ -101,7 +94,6 @@
                             {% if perms.enrollment.change_applicant %}
                             <a href="{% url 'edit_applicant' applicant.pk %}" class="btn btn-sm btn-outline-primary me-2">Редактировать</a>
                             {% endif %}
-                            {# 6. Кнопка удаления, которая вызывает модальное окно #}
                             {% if perms.enrollment.delete_applicant %}
                             <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
                                 data-bs-target="#deleteApplicantModal" data-delete-url="{% url 'applicant_delete' applicant.pk %}">
@@ -147,42 +139,58 @@
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // --- 3. Инициализация TomSelect для фильтра по квотам ---
-    new TomSelect('#id_quotas', {
-        plugins: ['remove_button'],
-        placeholder: 'Выберите квоты...'
-    });
+    // Инициализация TomSelect для фильтра по квотам
+    const tomSelectQuotas = document.querySelector('#id_quotas');
+    if (tomSelectQuotas) {
+        new TomSelect(tomSelectQuotas, {
+            plugins: ['remove_button'],
+            placeholder: 'Выберите квоты...'
+        });
+    }
 
-    // --- Логика для чекбоксов и массовых действий ---
+    // --- НАЧАЛО ИСПРАВЛЕННОГО БЛОКА ДЛЯ ЧЕКБОКСОВ ---
+    
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
     const bulkActionForm = document.getElementById('bulkActionForm');
-    const selectedApplicantsInput = document.getElementById('selectedApplicantsInput');
+    
+    // Важно выбирать чекбоксы каждый раз при взаимодействии, а не один раз при загрузке
+    const getRowCheckboxes = () => document.querySelectorAll('.row-checkbox');
 
+    // Логика для чекбокса "Выбрать всех"
     if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function () {
-            rowCheckboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
+        selectAllCheckbox.addEventListener('click', function () {
+            const isChecked = this.checked;
+            getRowCheckboxes().forEach(checkbox => {
+                checkbox.checked = isChecked;
             });
         });
     }
 
+    // Логика для отправки формы с массовым действием
     if (bulkActionForm) {
         bulkActionForm.addEventListener('submit', function (e) {
-            const selectedIds = Array.from(rowCheckboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value);
+            // 1. Находим все отмеченные чекбоксы
+            const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
             
+            // 2. Собираем их ID в массив
+            const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+            // 3. Проверяем, есть ли выбранные
             if (selectedIds.length === 0) {
                 e.preventDefault(); // Останавливаем отправку формы
                 alert('Пожалуйста, выберите хотя бы одного абитуриента.');
                 return;
             }
+            
+            // 4. Записываем ID в скрытое поле формы
+            const selectedApplicantsInput = document.getElementById('selectedApplicantsInput');
             selectedApplicantsInput.value = selectedIds.join(',');
         });
     }
 
-    // --- 6. Логика для модального окна удаления ---
+    // --- КОНЕЦ ИСПРАВЛЕННОГО БЛОКА ДЛЯ ЧЕКБОКСОВ ---
+
+    // Логика для модального окна удаления
     const deleteModal = document.getElementById('deleteApplicantModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', function (event) {
