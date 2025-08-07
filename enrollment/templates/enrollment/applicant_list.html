@@ -138,48 +138,48 @@
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Инициализация TomSelect для фильтра по квотам
-    const tomSelectQuotas = document.querySelector('#id_quotas');
-    if (tomSelectQuotas) {
-        new TomSelect(tomSelectQuotas, {
+    // Инициализация TomSelect для фильтра
+    const tomSelectElement = document.querySelector('#id_quotas');
+    if (tomSelectElement) {
+        new TomSelect(tomSelectElement, {
             plugins: ['remove_button'],
             placeholder: 'Выберите квоты...'
         });
     }
 
-    // --- Логика для чекбоксов (версия 3.0) ---
+    // --- ФИНАЛЬНАЯ ВЕРСИЯ ЛОГИКИ ДЛЯ ЧЕКБОКСОВ ---
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
     const bulkActionForm = document.getElementById('bulkActionForm');
-    const tableBody = document.querySelector('table tbody');
-
-    // Функция для получения всех чекбоксов, которые в данный момент видимы в таблице
-    const getRowCheckboxes = () => tableBody.querySelectorAll('.row-checkbox');
 
     // Логика для чекбокса "Выбрать всех"
-    if (selectAllCheckbox && tableBody) {
-        selectAllCheckbox.addEventListener('click', function (e) {
-            const isChecked = e.currentTarget.checked;
-            getRowCheckboxes().forEach(checkbox => {
-                checkbox.checked = isChecked;
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('click', function() {
+            // Прямой поиск всех чекбоксов в таблице
+            document.querySelectorAll('tbody .row-checkbox').forEach(checkbox => {
+                checkbox.checked = this.checked;
             });
         });
     }
 
     // Логика для отправки формы с массовым действием
     if (bulkActionForm) {
-        bulkActionForm.addEventListener('submit', function (e) {
-            const selectedIds = Array.from(getRowCheckboxes())
-                .filter(checkbox => checkbox.checked)
-                .map(checkbox => checkbox.value);
+        bulkActionForm.addEventListener('submit', function (event) {
+            // Прямой поиск всех ОТМЕЧЕННЫХ чекбоксов
+            const checkedCheckboxes = document.querySelectorAll('tbody .row-checkbox:checked');
+            
+            const selectedIds = Array.from(checkedCheckboxes).map(checkbox => checkbox.value);
 
             if (selectedIds.length === 0) {
-                e.preventDefault();
+                event.preventDefault(); // Останавливаем отправку
                 alert('Пожалуйста, выберите хотя бы одного абитуриента.');
                 return;
             }
             
-            const selectedApplicantsInput = document.getElementById('selectedApplicantsInput');
-            selectedApplicantsInput.value = selectedIds.join(',');
+            // Находим скрытое поле и присваиваем ему значение
+            const hiddenInput = document.getElementById('selectedApplicantsInput');
+            if(hiddenInput) {
+                hiddenInput.value = selectedIds.join(',');
+            }
         });
     }
 
