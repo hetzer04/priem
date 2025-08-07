@@ -7,8 +7,11 @@
     {% csrf_token %}
 
     {% if form.errors %}
-    <div class="alert alert-warning">
-        Пожалуйста, исправьте ошибки в полях, выделенных ниже.
+    <div class="alert alert-danger">
+        <h4 class="alert-heading">Ошибка валидации!</h4>
+        <p>Пожалуйста, исправьте ошибки в полях, выделенных ниже.</p>
+        <hr>
+        <p class="mb-0">{{ form.non_field_errors }}</p>
     </div>
     {% endif %}
 
@@ -19,8 +22,7 @@
                 <div class="col-md-4 mb-3">
                     <label for="{{ form.full_name.id_for_label }}" class="form-label">{{ form.full_name.label }}</label>
                     {{ form.full_name }}
-                    {% if form.full_name.errors %}<div class="invalid-feedback d-block">{{form.full_name.errors}}</div>
-                    {% endif %}
+                    {% if form.full_name.errors %}<div class="invalid-feedback d-block">{{form.full_name.errors}}</div>{% endif %}
                 </div>
                 <div class="col-md-4 mb-3">
                     <label for="{{ form.iin.id_for_label }}" class="form-label">{{ form.iin.label }}</label>
@@ -28,8 +30,7 @@
                     {% if form.iin.errors %}<div class="invalid-feedback d-block">{{form.iin.errors}}</div>{% endif %}
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="{{ form.birth_date.id_for_label }}" class="form-label">{{ form.birth_date.label
-                        }}</label>
+                    <label for="{{ form.birth_date.id_for_label }}" class="form-label">{{ form.birth_date.label }}</label>
                     {{ form.birth_date }}
                 </div>
                 <div class="col-md-4 mb-3">
@@ -37,13 +38,11 @@
                     {{ form.gender }}
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="{{ form.nationality.id_for_label }}" class="form-label">{{ form.nationality.label
-                        }}</label>
+                    <label for="{{ form.nationality.id_for_label }}" class="form-label">{{ form.nationality.label }}</label>
                     {{ form.nationality }}
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="{{ form.citizenship.id_for_label }}" class="form-label">{{ form.citizenship.label
-                        }}</label>
+                    <label for="{{ form.citizenship.id_for_label }}" class="form-label">{{ form.citizenship.label }}</label>
                     {{ form.citizenship }}
                 </div>
             </div>
@@ -55,8 +54,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label for="{{ form.application_date.id_for_label }}" class="form-label">{{
-                        form.application_date.label }}</label>
+                    <label for="{{ form.application_date.id_for_label }}" class="form-label">{{ form.application_date.label }}</label>
                     {{ form.application_date }}
                 </div>
                 <div class="col-md-8 mb-3">
@@ -65,18 +63,15 @@
                     {% if form.instance.photo %}
                     <div class="mt-2">
                         <small>Текущее фото:</small><br>
-                        <img src="{{ form.instance.photo.url }}" alt="Фото абитуриента"
-                            style="max-height: 100px; border-radius: 5px;">
+                        <img src="{{ form.instance.photo.url }}" alt="Фото абитуриента" style="max-height: 100px; border-radius: 5px;">
                     </div>
                     {% endif %}
                 </div>
                 <div class="col-12">
                     <div class="form-check">
                         {{ form.is_ready_for_enrollment }}
-                        <label for="{{ form.is_ready_for_enrollment.id_for_label }}" class="form-check-label">{{
-                            form.is_ready_for_enrollment.label }}</label>
-                        <small class="form-text text-muted d-block">Отметьте, если абитуриент выиграл грант или оплатил
-                            обучение и готов к зачислению в приказ.</small>
+                        <label for="{{ form.is_ready_for_enrollment.id_for_label }}" class="form-check-label">{{ form.is_ready_for_enrollment.label }}</label>
+                        <small class="form-text text-muted d-block">Отметьте, если абитуриент выиграл грант или оплатил обучение и готов к зачислению в приказ.</small>
                     </div>
                 </div>
             </div>
@@ -90,34 +85,50 @@
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.specialty.id_for_label }}" class="form-label">{{ form.specialty.label }}</label>
                     {{ form.specialty }}
-                    {% if form.specialty.errors %}<div class="invalid-feedback d-block">{{form.specialty.errors}}</div>
-                    {% endif %}
+                    {% if form.specialty.errors %}<div class="invalid-feedback d-block">{{form.specialty.errors}}</div>{% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="{{ form.qualification.id_for_label }}" class="form-label">{{ form.qualification.label
-                        }}</label>
+                    <label for="{{ form.qualification.id_for_label }}" class="form-label">{{ form.qualification.label }}</label>
                     {{ form.qualification }}
-                    {% if form.qualification.errors %}<div class="invalid-feedback d-block">
-                        {{form.qualification.errors}}</div>{% endif %}
+                    {% if form.qualification.errors %}<div class="invalid-feedback d-block">{{form.qualification.errors}}</div>{% endif %}
                 </div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ form.study_form.label }}</label>{{
-                    form.study_form }}</div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ form.study_language.label }}</label>{{
-                    form.study_language }}</div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ form.base_education.label }}</label>{{
-                    form.base_education }}</div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ form.school.label }}</label>{{ form.school }}
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ form.study_form.label }}</label>
+                    {{ form.study_form }}
                 </div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ form.graduation_year.label }}</label>{{
-                    form.graduation_year }}</div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ form.gpa.label }}</label>{{ form.gpa }}</div>
-                <div class="col-md-6 mb-3"><label class="form-label">{{ form.payment_type.label }}</label>{{
-                    form.payment_type }}</div>
-                <div class="col-md-6 mb-3"><label class="form-label">{{ form.payment_status.label }}</label>{{
-                    form.payment_status }}</div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ form.study_language.label }}</label>
+                    {{ form.study_language }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ form.base_education.label }}</label>
+                    {{ form.base_education }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ form.school.label }}</label>
+                    {{ form.school }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ form.graduation_year.label }}</label>
+                    {{ form.graduation_year }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ form.gpa.label }}</label>
+                    {{ form.gpa }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ form.payment_type.label }}</label>
+                    {{ form.payment_type }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ form.payment_status.label }}</label>
+                    {{ form.payment_status }}
+                </div>
             </div>
-            <div class="form-check">{{ form.with_honors }} <label class="form-check-label"
-                    for="{{ form.with_honors.id_for_label }}">{{ form.with_honors.label }}</label></div>
+            <div class="form-check">
+                {{ form.with_honors }} 
+                <label class="form-check-label" for="{{ form.with_honors.id_for_label }}">{{ form.with_honors.label }}</label>
+            </div>
         </div>
     </div>
 
@@ -125,24 +136,47 @@
         <div class="card-header">Дополнительно</div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6 mb-3"><label class="form-label">{{ form.phone_number.label }}</label>{{
-                    form.phone_number }}</div>
-                <div class="col-md-6 mb-3"><label class="form-label">{{ form.home_address.label }}</label>{{
-                    form.home_address }}</div>
-                <div class="col-md-12 mb-3"><label class="form-label">{{ form.parents_info.label }}</label>{{
-                    form.parents_info }}</div>
-                <div class="mb-3">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">{{ form.phone_number.label }}</label>
+                    {{ form.phone_number }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.home_address.id_for_label }}" class="form-label">{{ form.home_address.label }}</label>
+                    {{ form.home_address }}
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label for="{{ form.parents_info.id_for_label }}" class="form-label">{{ form.parents_info.label }}</label>
+                    {{ form.parents_info }}
+                </div>
+
+                <div class="col-12 mb-3">
                     <label class="form-label fw-bold">{{ form.quotas.label }}</label>
-                    {{ form.quotas }}
                     {% if form.quotas.help_text %}
-                    <small class="form-text text-danger">{{ form.quotas.help_text }}</small>
+                        <small class="form-text text-danger d-block mb-2">{{ form.quotas.help_text }}</small>
                     {% endif %}
+                    <div class="row">
+                        {% for checkbox in form.quotas %}
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ checkbox.tag }}
+                                <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                    {{ checkbox.choice_label }}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
-            <div class="form-check">{{ form.has_incomplete_docs }} <label class="form-check-label"
-                    for="{{ form.has_incomplete_docs.id_for_label }}">{{ form.has_incomplete_docs.label }}</label></div>
-            <div class="form-check">{{ form.needs_dormitory }} <label class="form-check-label"
-                    for="{{ form.needs_dormitory.id_for_label }}">{{ form.needs_dormitory.label }}</label></div>
+
+            <div class="form-check">
+                {{ form.has_incomplete_docs }}
+                <label class="form-check-label" for="{{ form.has_incomplete_docs.id_for_label }}">{{ form.has_incomplete_docs.label }}</label>
+            </div>
+            <div class="form-check">
+                {{ form.needs_dormitory }}
+                <label class="form-check-label" for="{{ form.needs_dormitory.id_for_label }}">{{ form.needs_dormitory.label }}</label>
+            </div>
         </div>
     </div>
 
@@ -155,10 +189,6 @@
         const specialtySelect = document.querySelector('#id_specialty');
         const qualificationSelect = document.querySelector('#id_qualification');
 
-        // Создаем "мастер-копию" всех опций квалификаций
-        const allQualifications = Array.from(qualificationSelect.options);
-
-        // Словарь для связи id специальности с ее квалификациями
         const qualificationsBySpecialty = {};
         {% for q in form.fields.qualification.queryset.all %}
         if (!qualificationsBySpecialty['{{ q.specialty.id }}']) {
@@ -171,17 +201,12 @@
             const selectedSpecialtyId = specialtySelect.value;
             const currentQualificationId = qualificationSelect.value;
 
-            // Очищаем список
             qualificationSelect.innerHTML = '';
-
-            // Добавляем пустую опцию
             qualificationSelect.add(new Option('---------', ''));
 
-            // Заполняем релевантными опциями
             if (qualificationsBySpecialty[selectedSpecialtyId]) {
                 qualificationsBySpecialty[selectedSpecialtyId].forEach(q => {
                     const option = new Option(q.name, q.id);
-                    // Если эта опция была выбрана ранее, оставляем ее выбранной
                     if (q.id === currentQualificationId) {
                         option.selected = true;
                     }
@@ -191,13 +216,13 @@
         }
 
         specialtySelect.addEventListener('change', function () {
-            // При смене специальности сбрасываем выбор квалификации
             qualificationSelect.value = '';
             updateQualifications();
         });
-
-        // Вызываем функцию при загрузке, чтобы установить начальное состояние
-        updateQualifications();
+        
+        if (specialtySelect.value) {
+            updateQualifications();
+        }
     });
 </script>
 {% endblock %}
