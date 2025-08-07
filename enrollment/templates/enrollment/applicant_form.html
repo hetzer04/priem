@@ -173,30 +173,35 @@
     <a href="{% url 'applicant_list' %}" class="btn btn-secondary">Отмена</a>
 </form>
 
+{% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // --- Логика для TomSelect (квоты) ---
+        new TomSelect('#id_quotas', {
+            plugins: ['remove_button'],
+            placeholder: 'Начните вводить для поиска квоты...'
+        });
+
+        // --- ИСПРАВЛЕННАЯ ЛОГИКА ДЛЯ КВАЛИФИКАЦИЙ ---
         const specialtySelect = document.querySelector('#id_specialty');
         const qualificationSelect = document.querySelector('#id_qualification');
 
-        const qualificationsBySpecialty = {};
-        {% for q in form.fields.qualification.queryset.all %}
-        if (!qualificationsBySpecialty['{{ q.specialty.id }}']) {
-            qualificationsBySpecialty['{{ q.specialty.id }}'] = [];
-        }
-        qualificationsBySpecialty['{{ q.specialty.id }}'].push({ id: '{{ q.id }}', name: '{{ q.name|escapejs }}' });
-        {% endfor %}
+        // 1. Получаем готовый JSON-объект из формы
+        const qualificationsBySpecialty = JSON.parse('{{ form.qualification_choices_for_js|escapejs }}');
 
         function updateQualifications() {
             const selectedSpecialtyId = specialtySelect.value;
-            const currentQualificationId = qualificationSelect.value;
-
+            // Сохраняем текущее выбранное значение, чтобы не сбрасывать его при перезагрузке
+            const currentQualificationId = qualificationSelect.value; 
+            
             qualificationSelect.innerHTML = '';
             qualificationSelect.add(new Option('---------', ''));
 
             if (qualificationsBySpecialty[selectedSpecialtyId]) {
                 qualificationsBySpecialty[selectedSpecialtyId].forEach(q => {
                     const option = new Option(q.name, q.id);
-                    if (q.id === currentQualificationId) {
+                    // Если ID опции совпадает с сохраненным, делаем ее выбранной
+                    if (q.id == currentQualificationId) {
                         option.selected = true;
                     }
                     qualificationSelect.add(option);
@@ -205,22 +210,16 @@
         }
 
         specialtySelect.addEventListener('change', function () {
-            qualificationSelect.value = '';
+            // При смене специальности сбрасываем выбор квалификации
+            qualificationSelect.value = ''; 
             updateQualifications();
         });
         
+        // Вызываем функцию при загрузке, чтобы установить правильное начальное состояние
+        // (особенно важно для страницы редактирования)
         if (specialtySelect.value) {
             updateQualifications();
         }
-    });
-</script>
-{% block scripts %}
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        new TomSelect('#id_quotas', {
-            plugins: ['remove_button'], // Позволяет удалять теги крестиком
-            placeholder: 'Начните вводить для поиска квоты...'
-        });
     });
 </script>
 {% endblock %}
