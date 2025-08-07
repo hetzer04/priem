@@ -23,4 +23,13 @@ urlpatterns = [
     # Авторизация
     path('login/', LoginView.as_view(template_name='enrollment/login.html'), name='login'),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+
+    # 1. Для страницы просмотра данных абитуриента
+    path('view/<int:pk>/', views.ApplicantDetailView.as_view(), name='applicant_detail'),
+    
+    # 2. Для удаления абитуриента
+    path('delete/<int:pk>/', views.ApplicantDeleteView.as_view(), name='applicant_delete'),
+
+    # 3. Для массовой отметки "К зачислению"
+    path('bulk-enroll/', views.bulk_enroll_view, name='bulk_enroll'),
 ]

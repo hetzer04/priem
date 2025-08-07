@@ -1,40 +1,20 @@
 {% extends 'enrollment/base.html' %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Список абитуриентов</h2>
     <div>
-        <a href="{% url 'order_list' %}" class="btn btn-info">Список приказов</a>
+        {# 2. Кнопка экспорта переехала сюда #}
+        {% if perms.enrollment.view_applicant %}
+        <a href="{% url 'export_applicants_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success">Экспорт в Excel</a>
+        {% endif %}
         {% if perms.enrollment.add_applicant %}
         <a href="{% url 'add_applicant' %}" class="btn btn-primary">Добавить абитуриента</a>
         {% endif %}
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-header">Экспорт и Импорт</div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <h5>Экспорт данных</h5>
-                <p>Скачать отфильтрованный список в виде Excel файла.</p>
-                <a href="{% url 'export_applicants_excel' %}?{{ request.GET.urlencode }}"
-                    class="btn btn-success">Экспорт в Excel</a>
-            </div>
-            <div class="col-md-6">
-                <h5>Импорт данных</h5>
-                <p>Загрузить абитуриентов из Excel файла. <strong>Столбцы в файле должны точно соответствовать
-                        шаблону.</strong></p>
-                <form action="{% url 'import_applicants_excel' %}" method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="input-group">
-                        <input type="file" name="excel_file" class="form-control" required>
-                        <button type="submit" class="btn btn-warning">Импортировать</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+{# 1. Блок импорта и кнопка "Список приказов" удалены #}
 
 <div class="accordion mb-4" id="filterAccordion">
     <div class="accordion-item">
@@ -42,23 +22,19 @@
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                 data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
                 Фильтры и поиск
-                {% if request.GET|length > 1 %}
-                <span class="badge bg-primary ms-2">Активны</span>
-                {% endif %}
+                {% if request.GET|length > 1 %}<span class="badge bg-primary ms-2">Активны</span>{% endif %}
             </button>
         </h2>
         <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
             data-bs-parent="#filterAccordion">
             <div class="accordion-body">
-
                 <form method="get">
                     <div class="row g-3">
                         {% for field in filter.form %}
                         <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="form-floating">
-                                {{ field }}
-                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            </div>
+                            {# 3. Для поля Квоты здесь ничего менять не нужно, JS сам его найдет по ID #}
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
                         </div>
                         {% endfor %}
                     </div>
@@ -67,76 +43,155 @@
                         <a href="{% url 'applicant_list' %}" class="btn btn-secondary">Сбросить</a>
                     </div>
                 </form>
-
             </div>
         </div>
     </div>
 </div>
 
-{# -- НАЧАЛО НОВОГО БЛОКА -- #}
-<div class="d-flex justify-content-end mb-2">
-    <span class="fw-bold">Всего абитуриентов: {{ filter.qs|length }}</span>
-</div>
-{# -- КОНЕЦ НОВОГО БЛОКА -- #}
-
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover table-bordered">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>ФИО</th>
-                <th>Специальность</th>
-                <th>Статус</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for applicant in filter.qs %}
-            {# ИЗМЕНЕНИЕ: Добавляем класс table-warning, если есть старый статус #}
-            <tr
-                class="{% if applicant.social_status %}table-warning{% elif applicant.is_ready_for_enrollment %}table-success{% endif %}">
-                <td>{{ forloop.counter }}</td>
-                <td>
-                    {{ applicant.full_name }}
-
-                    {# ИЗМЕНЕНИЕ: Добавляем иконку-подсказку #}
-                    {% if applicant.social_status %}
-                    <i class="fas fa-exclamation-circle text-warning ms-1"
-                        title="Требуется обновить квоту! Старое значение: {{ applicant.social_status }}"></i>
-                    {% elif applicant.photo %}
-                    <i class="fas fa-camera text-muted ms-1"></i>
-                    {% endif %}
-                </td>
-                <td>{{ applicant.specialty.name }}</td>
-                <td> {% if applicant.is_ready_for_enrollment %}
-                    <span class="badge bg-primary">Готов к зачислению</span>
-                    {% else %}
-                    <span class="badge bg-secondary">Ожидает</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <div class="d-flex">
-                        {% if perms.enrollment.change_applicant %}
-                        <form action="{% url 'toggle_enrollment_status' applicant.pk %}" method="post" class="me-2">
-                            {% csrf_token %}
-                            {% if applicant.is_ready_for_enrollment %}
-                            <button type="submit" class="btn btn-sm btn-outline-secondary"
-                                title="Отменить готовность">Отменить</button>
-                            {% else %}
-                            <button type="submit" class="btn btn-sm btn-primary"
-                                title="Пометить как готового к зачислению">К зачислению</button>
-                            {% endif %}
-                        </form>
-                        <a href="{% url 'edit_applicant' applicant.pk %}"
-                            class="btn btn-sm btn-outline-primary">Редактировать</a>
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Всего абитуриентов: {{ filter.qs.count }}</span>
+        <div>
+            {# 5. Форма для массового действия "К зачислению" #}
+            {% if perms.enrollment.change_applicant %}
+            <form action="{% url 'bulk_enroll' %}" method="post" id="bulkActionForm" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="selected_applicants" id="selectedApplicantsInput">
+                <button type="submit" class="btn btn-sm btn-primary">Отметить выбранных к зачислению</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered mb-0">
+            <thead>
+                <tr>
+                    {# 4. Чекбокс для выбора всех #}
+                    <th style="width: 1%;"><input type="checkbox" class="form-check-input" id="selectAllCheckbox"></th>
+                    <th>#</th>
+                    <th>ФИО</th>
+                    <th>Специальность</th>
+                    <th>Статус</th>
+                    <th style="width: 15%;">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for applicant in filter.qs %}
+                <tr class="{% if applicant.social_status %}table-warning{% elif applicant.is_ready_for_enrollment %}table-success{% endif %}">
+                    {# 4. Чекбокс для каждой строки #}
+                    <td><input type="checkbox" class="form-check-input row-checkbox" name="applicant_id" value="{{ applicant.pk }}"></td>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        {# 7. Имя абитуриента теперь ссылка на страницу просмотра #}
+                        <a href="{% url 'applicant_detail' applicant.pk %}">{{ applicant.full_name }}</a>
+                        {% if applicant.social_status %}
+                        <i class="fas fa-exclamation-circle text-warning ms-1" title="Требуется обновить квоту! Старое значение: {{ applicant.social_status }}"></i>
+                        {% elif applicant.photo %}<i class="fas fa-camera text-muted ms-1"></i>{% endif %}
+                    </td>
+                    <td>{{ applicant.specialty.name }}</td>
+                    <td>
+                        {% if applicant.is_ready_for_enrollment %}
+                        <span class="badge bg-primary">Готов к зачислению</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Ожидает</span>
                         {% endif %}
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            {% endfor %}
-        </tbody>
-    </table>
+                    </td>
+                    <td>
+                        <div class="d-flex">
+                            {% if perms.enrollment.change_applicant %}
+                            <a href="{% url 'edit_applicant' applicant.pk %}" class="btn btn-sm btn-outline-primary me-2">Редактировать</a>
+                            {% endif %}
+                            {# 6. Кнопка удаления, которая вызывает модальное окно #}
+                            {% if perms.enrollment.delete_applicant %}
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                                data-bs-target="#deleteApplicantModal" data-delete-url="{% url 'applicant_delete' applicant.pk %}">
+                                Удалить
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">Абитуриенты не найдены.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<div class="modal fade" id="deleteApplicantModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить этого абитуриента? Это действие необратимо!
+            </div>
+            <div class="modal-footer">
+                <form method="post" id="deleteForm">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-danger">Да, удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // --- 3. Инициализация TomSelect для фильтра по квотам ---
+    new TomSelect('#id_quotas', {
+        plugins: ['remove_button'],
+        placeholder: 'Выберите квоты...'
+    });
+
+    // --- Логика для чекбоксов и массовых действий ---
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const bulkActionForm = document.getElementById('bulkActionForm');
+    const selectedApplicantsInput = document.getElementById('selectedApplicantsInput');
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function () {
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+    }
+
+    if (bulkActionForm) {
+        bulkActionForm.addEventListener('submit', function (e) {
+            const selectedIds = Array.from(rowCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+            
+            if (selectedIds.length === 0) {
+                e.preventDefault(); // Останавливаем отправку формы
+                alert('Пожалуйста, выберите хотя бы одного абитуриента.');
+                return;
+            }
+            selectedApplicantsInput.value = selectedIds.join(',');
+        });
+    }
+
+    // --- 6. Логика для модального окна удаления ---
+    const deleteModal = document.getElementById('deleteApplicantModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const deleteUrl = button.getAttribute('data-delete-url');
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.action = deleteUrl;
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'enrollment/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Просмотр данных: {{ applicant.full_name }}</h2>
+    <div>
+        {% if perms.enrollment.change_applicant %}
+        <a href="{% url 'edit_applicant' applicant.pk %}" class="btn btn-primary">Редактировать</a>
+        {% endif %}
+        <a href="{% url 'applicant_list' %}" class="btn btn-secondary">Назад к списку</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        {% if applicant.photo %}
+        <img src="{{ applicant.photo.url }}" class="img-fluid rounded mb-3" alt="Фото абитуриента">
+        {% else %}
+        <div class="border rounded bg-light d-flex align-items-center justify-content-center mb-3"
+            style="height: 300px;">
+            <span class="text-muted">Нет фото</span>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">ФИО</dt>
+                    <dd class="col-sm-8">{{ applicant.full_name }}</dd>
+
+                    <dt class="col-sm-4">ИИН</dt>
+                    <dd class="col-sm-8">{{ applicant.iin }}</dd>
+
+                    <dt class="col-sm-4">Дата рождения</dt>
+                    <dd class="col-sm-8">{{ applicant.birth_date|date:"d.m.Y" }}</dd>
+
+                    <dt class="col-sm-4">Пол</dt>
+                    <dd class="col-sm-8">{{ applicant.gender }}</dd>
+
+                    <dt class="col-sm-4">Национальность</dt>
+                    <dd class="col-sm-8">{{ applicant.nationality }}</dd>
+
+                    <dt class="col-sm-4">Гражданство</dt>
+                    <dd class="col-sm-8">{{ applicant.citizenship }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5>Данные об обучении</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-4">Специальность</dt>
+            <dd class="col-sm-8">{{ applicant.specialty.name }}</dd>
+
+            <dt class="col-sm-4">Квалификация</dt>
+            <dd class="col-sm-8">{{ applicant.qualification.name }}</dd>
+
+            <dt class="col-sm-4">Форма обучения</dt>
+            <dd class="col-sm-8">{{ applicant.study_form }}</dd>
+
+            <dt class="col-sm-4">На базе</dt>
+            <dd class="col-sm-8">{{ applicant.base_education }}</dd>
+
+            <dt class="col-sm-4">Средний балл</dt>
+            <dd class="col-sm-8">{{ applicant.gpa }}</dd>
+
+            <dt class="col-sm-4">Тип финансирования</dt>
+            <dd class="col-sm-8">{{ applicant.payment_type }}</dd>
+
+            <dt class="col-sm-4">Квоты</dt>
+            <dd class="col-sm-8">
+                {% for quota in applicant.quotas.all %}
+                <span class="badge bg-info">{{ quota.name }}</span>
+                {% empty %}
+                <span class="text-muted">Нет</span>
+                {% endfor %}
+            </dd>
+        </dl>
+    </div>
+</div>
+
+{% endblock %}

@@ -3,6 +3,7 @@
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required # Импортируем permission_required
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.http import HttpResponse
 from django.db.models import Count, Q
@@ -19,6 +20,8 @@ import pandas as pd
 from django.contrib import messages
 
 from django.core.serializers.json import DjangoJSONEncoder
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.views.generic import DetailView, DeleteView
 
 @require_POST # Эта функция будет принимать только POST-запросы
 @permission_required('enrollment.change_applicant', raise_exception=True)
@@ -358,3 +361,35 @@ def export_dashboard_excel(request):
     
     return response
 
+class ApplicantDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+    model = Applicant
+    permission_required = 'enrollment.view_applicant'
+    template_name = 'enrollment/applicant_detail.html'
+    context_object_name = 'applicant'
+
+# 6. Логика удаления абитуриента
+class ApplicantDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Applicant
+    permission_required = 'enrollment.delete_applicant'
+    # После удаления перенаправляем на список
+    success_url = reverse_lazy('applicant_list')
+    
+    # Этот view не требует своего шаблона, т.к. подтверждение будет в модальном окне,
+    # которое отправляет POST-запрос напрямую на этот URL.
+
+# 4. Логика для массовой отметки "К зачислению"
+@require_POST
+@permission_required('enrollment.change_applicant')
+def bulk_enroll_view(request):
+    applicant_ids = request.POST.getlist('selected_applicants')
+    if not applicant_ids:
+        messages.warning(request, "Вы не выбрали ни одного абитуриента.")
+        return redirect('applicant_list')
+    
+    # Обновляем статус для всех выбранных ID
+    updated_count = Applicant.objects.filter(pk__in=applicant_ids).update(is_ready_for_enrollment=True)
+    
+    if updated_count > 0:
+        messages.success(request, f"Статус обновлен для {updated_count} абитуриентов.")
+    
+    return redirect('applicant_list')
