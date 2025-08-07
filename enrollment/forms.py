@@ -1,3 +1,5 @@
+# enrollment/forms.py
+
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import Applicant, Qualification
@@ -5,9 +7,18 @@ from .models import Applicant, Qualification
 class ApplicantForm(forms.ModelForm):
     class Meta:
         model = Applicant
-        fields = '__all__'
+        # 1. Перечисляем поля вручную, чтобы исключить 'social_status' и добавить 'quotas'
+        fields = [
+            'full_name', 'iin', 'specialty', 'qualification', 'quotas',
+            'study_form', 'base_education', 'school', 'graduation_year',
+            'with_honors', 'gpa', 'birth_date', 'study_language',
+            'citizenship', 'nationality', 'gender', 'phone_number', 'home_address',
+            'parents_info', 'has_incomplete_docs', 'needs_dormitory',
+            'application_date', 'photo', 'is_ready_for_enrollment',
+            'payment_type', 'payment_status'
+        ]
         
-        # Определяем виджеты для красивого отображения и добавляем Bootstrap классы
+        # 2. Обновляем виджеты: убираем 'social_status' и добавляем 'quotas'
         widgets = {
             'application_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'birth_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -42,34 +53,52 @@ class ApplicantForm(forms.ModelForm):
             'gpa': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
             'home_address': forms.TextInput(attrs={'class': 'form-control'}),
-            'social_status': forms.TextInput(attrs={'class': 'form-control'}),
+            
+            # Новый виджет для квот
+            'quotas': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['qualification'].queryset = Qualification.objects.all()
         
-        if self.instance and self.instance.pk:
-            self.fields['qualification'].queryset = Qualification.objects.filter(specialty=self.instance.specialty).order_by('name')
-
+        # --- Старая логика для динамической фильтрации квалификаций ---
+        self.fields['qualification'].queryset = Qualification.objects.none()
+        
         if 'specialty' in self.data:
             try:
                 specialty_id = int(self.data.get('specialty'))
                 self.fields['qualification'].queryset = Qualification.objects.filter(specialty_id=specialty_id).order_by('name')
             except (ValueError, TypeError):
-                if not self.instance.pk:
-                     self.fields['qualification'].queryset = Qualification.objects.none()
+                pass
+        elif self.instance and self.instance.pk:
+            self.fields['qualification'].queryset = self.instance.specialty.qualification_set.order_by('name')
 
-    # ДОБАВЛЯЕМ МЕТОД ДЛЯ ВАЛИДАЦИИ
+        # --- 3. Новая логика для обработки старого поля social_status ---
+        if self.instance and self.instance.pk and self.instance.social_status:
+            self.fields['quotas'].label = f"Квоты (старый статус: {self.instance.social_status})"
+            self.fields['quotas'].help_text = "Внимание! Выберите новые квоты из списка. После сохранения старый статус будет очищен."
+
+    # --- Метод валидации остается без изменений ---
     def clean(self):
         cleaned_data = super().clean()
         specialty = cleaned_data.get("specialty")
         qualification = cleaned_data.get("qualification")
 
         if specialty and qualification:
-            # Проверяем, что выбранная квалификация действительно принадлежит выбранной специальности
             if qualification.specialty != specialty:
-                raise ValidationError(
-                    "Выбранная квалификация не соответствует выбранной специальности. Пожалуйста, выберите корректную квалификацию."
-                )
+                self.add_error('qualification', "Выбранная квалификация не соответствует выбранной специальности.")
+        
         return cleaned_data
+
+    # --- 4. Новый метод для очистки старого поля при сохранении ---
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        if instance.pk and instance.social_status:
+            instance.social_status = "" # Очищаем старое поле
+        
+        if commit:
+            instance.save()
+            self.save_m2m()
+
+        return instance

@@ -3,10 +3,10 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Список абитуриентов</h2>
     <div>
-      <a href="{% url 'order_list' %}" class="btn btn-info">Список приказов</a>
-      {% if perms.enrollment.add_applicant %}
-      <a href="{% url 'add_applicant' %}" class="btn btn-primary">Добавить абитуриента</a>
-      {% endif %}
+        <a href="{% url 'order_list' %}" class="btn btn-info">Список приказов</a>
+        {% if perms.enrollment.add_applicant %}
+        <a href="{% url 'add_applicant' %}" class="btn btn-primary">Добавить абитуриента</a>
+        {% endif %}
     </div>
 </div>
 
@@ -17,11 +17,13 @@
             <div class="col-md-6">
                 <h5>Экспорт данных</h5>
                 <p>Скачать отфильтрованный список в виде Excel файла.</p>
-                <a href="{% url 'export_applicants_excel' %}?{{ request.GET.urlencode }}" class="btn btn-success">Экспорт в Excel</a>
+                <a href="{% url 'export_applicants_excel' %}?{{ request.GET.urlencode }}"
+                    class="btn btn-success">Экспорт в Excel</a>
             </div>
             <div class="col-md-6">
                 <h5>Импорт данных</h5>
-                <p>Загрузить абитуриентов из Excel файла. <strong>Столбцы в файле должны точно соответствовать шаблону.</strong></p>
+                <p>Загрузить абитуриентов из Excel файла. <strong>Столбцы в файле должны точно соответствовать
+                        шаблону.</strong></p>
                 <form action="{% url 'import_applicants_excel' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="input-group">
@@ -36,36 +38,38 @@
 
 <div class="accordion mb-4" id="filterAccordion">
     <div class="accordion-item">
-      <h2 class="accordion-header" id="headingOne">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-          Фильтры и поиск
-          {% if request.GET|length > 1 %}
-            <span class="badge bg-primary ms-2">Активны</span>
-          {% endif %}
-        </button>
-      </h2>
-      <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#filterAccordion">
-        <div class="accordion-body">
-            
-            <form method="get">
-                <div class="row g-3">
-                    {% for field in filter.form %}
-                    <div class="col-lg-3 col-md-4 col-sm-6">
-                        <div class="form-floating">
-                            {{ field }}
-                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">Применить</button>
-                    <a href="{% url 'applicant_list' %}" class="btn btn-secondary">Сбросить</a>
-                </div>
-            </form>
+        <h2 class="accordion-header" id="headingOne">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                Фильтры и поиск
+                {% if request.GET|length > 1 %}
+                <span class="badge bg-primary ms-2">Активны</span>
+                {% endif %}
+            </button>
+        </h2>
+        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
+            data-bs-parent="#filterAccordion">
+            <div class="accordion-body">
 
+                <form method="get">
+                    <div class="row g-3">
+                        {% for field in filter.form %}
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <div class="form-floating">
+                                {{ field }}
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">Применить</button>
+                        <a href="{% url 'applicant_list' %}" class="btn btn-secondary">Сбросить</a>
+                    </div>
+                </form>
+
+            </div>
         </div>
-      </div>
     </div>
 </div>
 
@@ -83,43 +87,55 @@
                 <th>#</th>
                 <th>ФИО</th>
                 <th>Специальность</th>
-                <th>Статус</th> <th>Действия</th>
+                <th>Статус</th>
+                <th>Действия</th>
             </tr>
         </thead>
         <tbody>
             {% for applicant in filter.qs %}
-            <tr class="{% if applicant.is_ready_for_enrollment %}table-success{% endif %}">
+            {# ИЗМЕНЕНИЕ: Добавляем класс table-warning, если есть старый статус #}
+            <tr
+                class="{% if applicant.social_status %}table-warning{% elif applicant.is_ready_for_enrollment %}table-success{% endif %}">
                 <td>{{ forloop.counter }}</td>
                 <td>
                     {{ applicant.full_name }}
-                    {% if applicant.photo %}
-                        <i class="fas fa-camera text-muted"></i> {% endif %}
+
+                    {# ИЗМЕНЕНИЕ: Добавляем иконку-подсказку #}
+                    {% if applicant.social_status %}
+                    <i class="fas fa-exclamation-circle text-warning ms-1"
+                        title="Требуется обновить квоту! Старое значение: {{ applicant.social_status }}"></i>
+                    {% elif applicant.photo %}
+                    <i class="fas fa-camera text-muted ms-1"></i>
+                    {% endif %}
                 </td>
                 <td>{{ applicant.specialty.name }}</td>
                 <td> {% if applicant.is_ready_for_enrollment %}
-                        <span class="badge bg-primary">Готов к зачислению</span>
+                    <span class="badge bg-primary">Готов к зачислению</span>
                     {% else %}
-                        <span class="badge bg-secondary">Ожидает</span>
+                    <span class="badge bg-secondary">Ожидает</span>
                     {% endif %}
                 </td>
                 <td>
                     <div class="d-flex">
                         {% if perms.enrollment.change_applicant %}
-                            <form action="{% url 'toggle_enrollment_status' applicant.pk %}" method="post" class="me-2">
-                                {% csrf_token %}
-                                {% if applicant.is_ready_for_enrollment %}
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="Отменить готовность">Отменить</button>
-                                {% else %}
-                                    <button type="submit" class="btn btn-sm btn-primary" title="Пометить как готового к зачислению">К зачислению</button>
-                                {% endif %}
-                            </form>
-                            <a href="{% url 'edit_applicant' applicant.pk %}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+                        <form action="{% url 'toggle_enrollment_status' applicant.pk %}" method="post" class="me-2">
+                            {% csrf_token %}
+                            {% if applicant.is_ready_for_enrollment %}
+                            <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                title="Отменить готовность">Отменить</button>
+                            {% else %}
+                            <button type="submit" class="btn btn-sm btn-primary"
+                                title="Пометить как готового к зачислению">К зачислению</button>
+                            {% endif %}
+                        </form>
+                        <a href="{% url 'edit_applicant' applicant.pk %}"
+                            class="btn btn-sm btn-outline-primary">Редактировать</a>
                         {% endif %}
                     </div>
                 </td>
             </tr>
             {% empty %}
-                {% endfor %}
+            {% endfor %}
         </tbody>
     </table>
 </div>
