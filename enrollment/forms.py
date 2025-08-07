@@ -55,7 +55,7 @@ class ApplicantForm(forms.ModelForm):
             'home_address': forms.TextInput(attrs={'class': 'form-control'}),
             
             # Новый виджет для квот
-            'quotas': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+            'quotas': forms.SelectMultiple(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
