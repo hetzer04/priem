@@ -75,7 +75,7 @@ class QuotaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     permission_required = 'handbooks.view_quota'
     template_name = 'handbooks/quota_list.html'
     context_object_name = 'quotas'
-    queryset = Quota.objects.select_related('specialty').all()
+    queryset = Quota.objects.all()
 
 class QuotaCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Quota
