@@ -209,49 +209,38 @@ def dashboard_view(request):
     Отображает дашборд со сводной статистикой по абитуриентам.
     """
     qualifications_data = Qualification.objects.annotate(
-        total_applicants=Count('applicant'),
+        # --- ОЧНАЯ ФОРМА (все, что НЕ дуальное) ---
+        ochnaya_base9_rus=Count('applicant', filter=Q(applicant__base_education='9 классов', applicant__study_language__icontains='рус') & ~Q(applicant__study_form='Дуальная')),
+        ochnaya_base9_kaz=Count('applicant', filter=Q(applicant__base_education='9 классов', applicant__study_language__icontains='каз') & ~Q(applicant__study_form='Дуальная')),
+        ochnaya_base11_rus=Count('applicant', filter=Q(applicant__base_education='11 классов', applicant__study_language__icontains='рус') & ~Q(applicant__study_form='Дуальная')),
+        ochnaya_base11_kaz=Count('applicant', filter=Q(applicant__base_education='11 классов', applicant__study_language__icontains='каз') & ~Q(applicant__study_form='Дуальная')),
+        ochnaya_tipo_rus=Count('applicant', filter=Q(applicant__base_education='ТиПО', applicant__study_language__icontains='рус') & ~Q(applicant__study_form='Дуальная')),
+        ochnaya_tipo_kaz=Count('applicant', filter=Q(applicant__base_education='ТиПО', applicant__study_language__icontains='каз') & ~Q(applicant__study_form='Дуальная')),
 
-        # Подсчет по базе 9
-        base9_rus=Count('applicant', filter=Q(
-            applicant__base_education='9 классов',
-            applicant__study_language__icontains='рус'
-        ) & ~Q(applicant__study_form='Дуальная')),
-        base9_kaz=Count('applicant', filter=Q(
-            applicant__base_education='9 классов',
-            applicant__study_language__icontains='каз'
-        ) & ~Q(applicant__study_form='Дуальная')),
+        # --- ДУАЛЬНАЯ ФОРМА ---
+        dual_base9_rus=Count('applicant', filter=Q(applicant__base_education='9 классов', applicant__study_language__icontains='рус', applicant__study_form='Дуальная')),
+        dual_base9_kaz=Count('applicant', filter=Q(applicant__base_education='9 классов', applicant__study_language__icontains='каз', applicant__study_form='Дуальная')),
+        dual_base11_rus=Count('applicant', filter=Q(applicant__base_education='11 классов', applicant__study_language__icontains='рус', applicant__study_form='Дуальная')),
+        dual_base11_kaz=Count('applicant', filter=Q(applicant__base_education='11 классов', applicant__study_language__icontains='каз', applicant__study_form='Дуальная')),
+        dual_tipo_rus=Count('applicant', filter=Q(applicant__base_education='ТиПО', applicant__study_language__icontains='рус', applicant__study_form='Дуальная')),
+        dual_tipo_kaz=Count('applicant', filter=Q(applicant__base_education='ТиПО', applicant__study_language__icontains='каз', applicant__study_form='Дуальная')),
 
-        # Подсчет по базе 11
-        base11_rus=Count('applicant', filter=Q(
-            applicant__base_education='11 классов',
-            applicant__study_language__icontains='рус'
-        ) & ~Q(applicant__study_form='Дуальная')),
-        base11_kaz=Count('applicant', filter=Q(
-            applicant__base_education='11 классов',
-            applicant__study_language__icontains='каз'
-        ) & ~Q(applicant__study_form='Дуальная')),
-
-        # ДОБАВЛЕНО: Подсчет по базе ТиПО
-        tipo_rus=Count('applicant', filter=Q(
-            applicant__base_education='ТиПО',
-            applicant__study_language__icontains='рус'
-        ) & ~Q(applicant__study_form='Дуальная')),
-        tipo_kaz=Count('applicant', filter=Q(
-            applicant__base_education='ТиПО',
-            applicant__study_language__icontains='каз'
-        ) & ~Q(applicant__study_form='Дуальная')),
-
-        # Подсчет дуальщиков
-        dual=Count('applicant', filter=Q(applicant__study_form='Дуальная')),
-
+        # Общее количество для проверки
+        total_applicants=Count('applicant')
     ).values(
-        'name', 'specialty__name', 'specialty_id', 'total_applicants',
-        'base9_rus', 'base9_kaz', 'base11_rus', 'base11_kaz',
-        'tipo_rus', 'tipo_kaz',  # ДОБАВЛЕНО
-        'dual'
+        'name', 'specialty__name',
+        # Очная
+        'ochnaya_base9_rus', 'ochnaya_base9_kaz',
+        'ochnaya_base11_rus', 'ochnaya_base11_kaz',
+        'ochnaya_tipo_rus', 'ochnaya_tipo_kaz',
+        # Дуальная
+        'dual_base9_rus', 'dual_base9_kaz',
+        'dual_base11_rus', 'dual_base11_kaz',
+        'dual_tipo_rus', 'dual_tipo_kaz',
+        'total_applicants'
     ).order_by('specialty__name', 'name')
 
-    # --- Группировка остается без изменений ---
+    # Группировка данных по специальности
     grouped_data = []
     for key, group in groupby(qualifications_data, key=lambda x: x['specialty__name']):
         qualifications = list(group)
@@ -262,15 +251,22 @@ def dashboard_view(request):
             'specialty_total': specialty_total,
         })
 
-    # --- Обновляем итоговые суммы ---
+    # ОБНОВЛЕННЫЙ РАСЧЕТ ИТОГОВ
     totals = {
-        'total_base9_rus': sum(item['base9_rus'] for item in qualifications_data),
-        'total_base9_kaz': sum(item['base9_kaz'] for item in qualifications_data),
-        'total_base11_rus': sum(item['base11_rus'] for item in qualifications_data),
-        'total_base11_kaz': sum(item['base11_kaz'] for item in qualifications_data),
-        'total_tipo_rus': sum(item['tipo_rus'] for item in qualifications_data),  # ДОБАВЛЕНО
-        'total_tipo_kaz': sum(item['tipo_kaz'] for item in qualifications_data),  # ДОБАВЛЕНО
-        'total_dual': sum(item['dual'] for item in qualifications_data),
+        'total_ochnaya_base9_rus': sum(item['ochnaya_base9_rus'] for item in qualifications_data),
+        'total_ochnaya_base9_kaz': sum(item['ochnaya_base9_kaz'] for item in qualifications_data),
+        'total_ochnaya_base11_rus': sum(item['ochnaya_base11_rus'] for item in qualifications_data),
+        'total_ochnaya_base11_kaz': sum(item['ochnaya_base11_kaz'] for item in qualifications_data),
+        'total_ochnaya_tipo_rus': sum(item['ochnaya_tipo_rus'] for item in qualifications_data),
+        'total_ochnaya_tipo_kaz': sum(item['ochnaya_tipo_kaz'] for item in qualifications_data),
+        
+        'total_dual_base9_rus': sum(item['dual_base9_rus'] for item in qualifications_data),
+        'total_dual_base9_kaz': sum(item['dual_base9_kaz'] for item in qualifications_data),
+        'total_dual_base11_rus': sum(item['dual_base11_rus'] for item in qualifications_data),
+        'total_dual_base11_kaz': sum(item['dual_base11_kaz'] for item in qualifications_data),
+        'total_dual_tipo_rus': sum(item['dual_tipo_rus'] for item in qualifications_data),
+        'total_dual_tipo_kaz': sum(item['dual_tipo_kaz'] for item in qualifications_data),
+        
         'grand_total': sum(item['specialty_total'] for item in grouped_data)
     }
 
@@ -341,18 +337,22 @@ def export_dashboard_excel(request):
         records.append({
             'Образовательная программа': q['specialty__name'],
             'Квалификация': q['name'],
-            'База 9 (рус)': q['base9_rus'],
-            'База 9 (каз)': q['base9_kaz'],
-            'База 11 (рус)': q['base11_rus'],
-            'База 11 (каз)': q['base11_kaz'],
-            'База ТиПО (рус)': q['tipo_rus'],
-            'База ТиПО (каз)': q['tipo_kaz'],
-            'Дуальное': q['dual'],
+            'Очная / База 9 (рус)': q['ochnaya_base9_rus'],
+            'Очная / База 9 (каз)': q['ochnaya_base9_kaz'],
+            'Очная / База 11 (рус)': q['ochnaya_base11_rus'],
+            'Очная / База 11 (каз)': q['ochnaya_base11_kaz'],
+            'Очная / База ТиПО (рус)': q['ochnaya_tipo_rus'],
+            'Очная / База ТиПО (каз)': q['ochnaya_tipo_kaz'],
+            'Дуальное / База 9 (рус)': q['dual_base9_rus'],
+            'Дуальное / База 9 (каз)': q['dual_base9_kaz'],
+            'Дуальное / База 11 (рус)': q['dual_base11_rus'],
+            'Дуальное / База 11 (каз)': q['dual_base11_kaz'],
+            'Дуальное / База ТиПО (рус)': q['dual_tipo_rus'],
+            'Дуальное / База ТиПО (каз)': q['dual_tipo_kaz'],
             'Всего по квалификации': q['total_applicants']
         })
     df = pd.DataFrame(records)
 
-    # Создаем HTTP-ответ с Excel файлом
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
