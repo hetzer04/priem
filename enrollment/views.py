@@ -313,25 +313,42 @@ def dashboard_view(request):
 @login_required
 def export_dashboard_excel(request):
     """
-    Формирует и отдает Excel-файл на основе данных из таблицы дашборда.
+    Формирует и отдает Excel-файл на основе ОБНОВЛЕННЫХ данных из дашборда.
     """
-    # Этот код полностью повторяет логику получения данных из dashboard_view.
-    # В идеале, эту логику можно вынести в отдельную функцию, чтобы избежать дублирования.
+    # ЭТОТ БЛОК ДОЛЖЕН БЫТЬ ИДЕНТИЧЕН ЗАПРОСУ ВНУТРИ dashboard_view
     qualifications_data = Qualification.objects.annotate(
-        total_applicants=Count('applicant'),
-        base9_rus=Count('applicant', filter=Q(applicant__base_education='9 классов', applicant__study_language__icontains='рус') & ~Q(applicant__study_form='Дуальная')),
-        base9_kaz=Count('applicant', filter=Q(applicant__base_education='9 классов', applicant__study_language__icontains='каз') & ~Q(applicant__study_form='Дуальная')),
-        base11_rus=Count('applicant', filter=Q(applicant__base_education='11 классов', applicant__study_language__icontains='рус') & ~Q(applicant__study_form='Дуальная')),
-        base11_kaz=Count('applicant', filter=Q(applicant__base_education='11 классов', applicant__study_language__icontains='каз') & ~Q(applicant__study_form='Дуальная')),
-        tipo_rus=Count('applicant', filter=Q(applicant__base_education='ТиПО', applicant__study_language__icontains='рус') & ~Q(applicant__study_form='Дуальная')),
-        tipo_kaz=Count('applicant', filter=Q(applicant__base_education='ТиПО', applicant__study_language__icontains='каз') & ~Q(applicant__study_form='Дуальная')),
-        dual=Count('applicant', filter=Q(applicant__study_form='Дуальная')),
+        # --- ОЧНАЯ ФОРМА (все, что НЕ дуальное) ---
+        ochnaya_base9_rus=Count('applicant', filter=Q(applicant__base_education='9 классов', applicant__study_language__icontains='рус') & ~Q(applicant__study_form='Дуальная')),
+        ochnaya_base9_kaz=Count('applicant', filter=Q(applicant__base_education='9 классов', applicant__study_language__icontains='каз') & ~Q(applicant__study_form='Дуальная')),
+        ochnaya_base11_rus=Count('applicant', filter=Q(applicant__base_education='11 классов', applicant__study_language__icontains='рус') & ~Q(applicant__study_form='Дуальная')),
+        ochnaya_base11_kaz=Count('applicant', filter=Q(applicant__base_education='11 классов', applicant__study_language__icontains='каз') & ~Q(applicant__study_form='Дуальная')),
+        ochnaya_tipo_rus=Count('applicant', filter=Q(applicant__base_education='ТиПО', applicant__study_language__icontains='рус') & ~Q(applicant__study_form='Дуальная')),
+        ochnaya_tipo_kaz=Count('applicant', filter=Q(applicant__base_education='ТиПО', applicant__study_language__icontains='каз') & ~Q(applicant__study_form='Дуальная')),
+
+        # --- ДУАЛЬНАЯ ФОРМА ---
+        dual_base9_rus=Count('applicant', filter=Q(applicant__base_education='9 классов', applicant__study_language__icontains='рус', applicant__study_form='Дуальная')),
+        dual_base9_kaz=Count('applicant', filter=Q(applicant__base_education='9 классов', applicant__study_language__icontains='каз', applicant__study_form='Дуальная')),
+        dual_base11_rus=Count('applicant', filter=Q(applicant__base_education='11 классов', applicant__study_language__icontains='рус', applicant__study_form='Дуальная')),
+        dual_base11_kaz=Count('applicant', filter=Q(applicant__base_education='11 классов', applicant__study_language__icontains='каз', applicant__study_form='Дуальная')),
+        dual_tipo_rus=Count('applicant', filter=Q(applicant__base_education='ТиПО', applicant__study_language__icontains='рус', applicant__study_form='Дуальная')),
+        dual_tipo_kaz=Count('applicant', filter=Q(applicant__base_education='ТиПО', applicant__study_language__icontains='каз', applicant__study_form='Дуальная')),
+
+        # Общее количество для проверки
+        total_applicants=Count('applicant')
     ).values(
-        'name', 'specialty__name', 'total_applicants', 'base9_rus', 'base9_kaz',
-        'base11_rus', 'base11_kaz', 'tipo_rus', 'tipo_kaz', 'dual'
+        'name', 'specialty__name',
+        # Очная
+        'ochnaya_base9_rus', 'ochnaya_base9_kaz',
+        'ochnaya_base11_rus', 'ochnaya_base11_kaz',
+        'ochnaya_tipo_rus', 'ochnaya_tipo_kaz',
+        # Дуальная
+        'dual_base9_rus', 'dual_base9_kaz',
+        'dual_base11_rus', 'dual_base11_kaz',
+        'dual_tipo_rus', 'dual_tipo_kaz',
+        'total_applicants'
     ).order_by('specialty__name', 'name')
 
-    # Формируем данные для DataFrame
+    # Формируем данные для DataFrame в новой структуре
     records = []
     for q in qualifications_data:
         records.append({
